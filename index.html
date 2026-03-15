@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+<meta charset="UTF-8">
+<title>روضة أحلى عالم</title>
+
+<style>
+
+body{
+font-family:Arial;
+text-align:center;
+direction:rtl;
+background:linear-gradient(#a0e9ff,#ffffff);
+}
+
+h1{
+font-size:45px;
+color:#ff6b6b;
+}
+
+#image{
+font-size:120px;
+margin:30px;
+}
+
+button{
+padding:18px 30px;
+font-size:22px;
+margin:10px;
+border:none;
+border-radius:15px;
+background:#4CAF50;
+color:white;
+cursor:pointer;
+}
+
+button:hover{
+background:#3e8e41;
+}
+
+input{
+padding:15px;
+font-size:20px;
+border-radius:10px;
+border:1px solid #ccc;
+}
+
+#result{
+font-size:28px;
+margin-top:20px;
+}
+
+#stars{
+font-size:35px;
+color:gold;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<h1>🌈 روضة أحلى عالم 🌈</h1>
+
+<div id="start">
+
+<h2>اكتب اسمك للبدء</h2>
+
+<input id="childName" placeholder="اسم الطفل">
+
+<br><br>
+
+<button onclick="startGame()">ابدأ اللعبة</button>
+
+</div>
+
+<div id="game" style="display:none;">
+
+<h2 id="welcome"></h2>
+
+<div id="stars">⭐ 0</div>
+
+<h2 id="question"></h2>
+
+<div id="image"></div>
+
+<button onclick="newQuestion()">🔊 اسمع السؤال</button>
+
+<button onclick="listen()">🎤 أجب بصوتك</button>
+
+<p id="result"></p>
+
+</div>
+
+<script>
+
+let correct="";
+let stars=0;
+let child="";
+
+function speak(text){
+
+let msg=new SpeechSynthesisUtterance(text);
+msg.lang="ar-SA";
+msg.rate=0.9;
+
+speechSynthesis.speak(msg);
+
+}
+
+function startGame(){
+
+child=document.getElementById("childName").value;
+
+if(child==""){
+alert("يرجى كتابة الاسم");
+return;
+}
+
+document.getElementById("start").style.display="none";
+document.getElementById("game").style.display="block";
+
+document.getElementById("welcome").innerHTML="مرحباً "+child;
+
+speak("مرحباً "+child+" هيا نلعب");
+
+}
+
+function newQuestion(){
+
+document.getElementById("result").innerHTML="";
+
+let type=Math.floor(Math.random()*4);
+
+if(type==0){
+
+let a=Math.floor(Math.random()*3)+1;
+let b=Math.floor(Math.random()*3)+1;
+
+correct=(a+b).toString();
+
+document.getElementById("image").innerHTML="➕";
+
+let q="كم يساوي "+a+" زائد "+b;
+
+document.getElementById("question").innerHTML=q;
+
+speak(q);
+
+}
+
+if(type==1){
+
+document.getElementById("image").innerHTML="🦁";
+
+correct="مفترس";
+
+let q="هل الأسد حيوان أليف أم مفترس؟";
+
+document.getElementById("question").innerHTML=q;
+
+speak(q);
+
+}
+
+if(type==2){
+
+document.getElementById("image").innerHTML="🐶";
+
+correct="أليف";
+
+let q="هل الكلب حيوان أليف أم مفترس؟";
+
+document.getElementById("question").innerHTML=q;
+
+speak(q);
+
+}
+
+if(type==3){
+
+let count=Math.floor(Math.random()*3)+2;
+
+correct=count.toString();
+
+let animals="";
+
+for(let i=0;i<count;i++){
+
+animals+="🐱";
+
+}
+
+document.getElementById("image").innerHTML=animals;
+
+let q="كم عدد القطط؟";
+
+document.getElementById("question").innerHTML=q;
+
+speak(q);
+
+}
+
+}
+
+function listen(){
+
+let recognition=new(window.SpeechRecognition || window.webkitSpeechRecognition)();
+
+recognition.lang="ar-SA";
+
+recognition.start();
+
+recognition.onresult=function(event){
+
+let text=event.results[0][0].transcript;
+
+if(text.includes(correct)){
+
+stars++;
+
+document.getElementById("stars").innerHTML="⭐ "+stars;
+
+document.getElementById("result").innerHTML="🎉 أحسنت "+child;
+
+speak("أحسنت "+child);
+
+}else{
+
+document.getElementById("result").innerHTML="حاول مرة أخرى";
+
+speak("حاول مرة أخرى");
+
+}
+
+}
+
+}
+
+</script>
+
+</body>
+</html>
