@@ -1,164 +1,231 @@
 <!DOCTYPE html>
-<html lang="ar">
+<html lang="ar" dir="rtl">
 <head>
 <meta charset="UTF-8">
-<title>روضة أحلى عالم - لعبة صوتية</title>
+<title>روضة أحلى عالم - لعبة الحيوانات والحساب</title>
 <style>
-body { font-family: Arial; text-align: center; direction: rtl; background: linear-gradient(#a0e9ff,#ffffff); padding:20px;}
-h1 { font-size:40px; color:#ff6b6b; }
-#image { font-size:120px; margin:20px; }
-button { padding:15px 25px; font-size:20px; margin:8px; border:none; border-radius:12px; background:#4caf50; color:white; cursor:pointer;}
-button:hover { background:#3e8e41; }
-#result { font-size:28px; margin-top:15px; height:40px; }
-#stars { font-size:35px; color:gold; }
+body{font-family:Tahoma;background:linear-gradient(#b3e5fc,#e1f5fe);text-align:center;margin:0;padding:0}
+header{background:#0288d1;color:white;padding:15px;font-size:32px}
+#game{padding:20px}
+#animalImg{font-size:230px;margin:20px;transition:transform .4s}
+#mathVisual{font-size:70px;margin:20px}
+button{font-size:26px;padding:14px 30px;margin:10px;border:none;border-radius:12px;cursor:pointer}
+#pet{background:#43a047;color:white}
+#predator{background:#e53935;color:white}
+#mathA,#mathB,#mathC{background:#6a1b9a;color:white}
+#next{background:#ffb300;color:black}
+.correct{transform:scale(1.25) rotate(6deg)}
+.wrong{animation:shake .4s}
+@keyframes shake{
+0%{transform:translateX(0)}
+25%{transform:translateX(-10px)}
+50%{transform:translateX(10px)}
+75%{transform:translateX(-10px)}
+100%{transform:translateX(0)}
+}
+#result{font-size:28px;height:35px}
+#nameBox{margin-top:30px}
+input{font-size:22px;padding:8px;border-radius:8px;border:1px solid #aaa}
 </style>
 </head>
 <body>
 
-<h1>🌈 روضة أحلى عالم 🌈</h1>
+<header>روضة أحلى عالم</header>
 
-<div id="start">
-  <h2>اكتب اسمك للبدء</h2>
-  <input id="childName" placeholder="اسم الطفل" style="font-size:20px; padding:10px; border-radius:10px; border:1px solid #ccc;">
-  <br><br>
-  <button onclick="startGame()">ابدأ اللعبة</button>
+<div id="nameBox">
+اكتب اسم الطفل:
+<input id="childName" placeholder="اسم الطفل">
+<button onclick="startGame()">ابدأ اللعبة</button>
 </div>
 
-<div id="game" style="display:none;">
-  <h2 id="welcome"></h2>
-  <div id="stars">⭐ 0</div>
-  <h2 id="question"></h2>
-  <div id="image"></div>
-  <button onclick="newQuestion()">🔊 اسمع السؤال</button>
-  <button onclick="listen()">🎤 أجب بصوتك</button>
-  <p id="result"></p>
+<div id="game" style="display:none">
+<h2 id="welcome"></h2>
+
+<div id="animalImg">🐱</div>
+<div id="mathVisual"></div>
+
+<div id="animalButtons">
+<button id="pet" onclick="answer('pet')">أليف</button>
+<button id="predator" onclick="answer('predator')">مفترس</button>
+</div>
+
+<div id="mathButtons" style="display:none">
+<button id="mathA" onclick="answer('A')"></button>
+<button id="mathB" onclick="answer('B')"></button>
+<button id="mathC" onclick="answer('C')"></button>
+</div>
+
+<h3 id="result"></h3>
+
+<button id="next" onclick="nextQuestion()" style="display:none">السؤال التالي</button>
+
 </div>
 
 <script>
-let correctAnswer = "";
-let stars = 0;
-let child = "";
 
-function speak(text){
-  let msg = new SpeechSynthesisUtterance(text);
-  msg.lang = "ar-SA";
-  msg.rate = 0.9;
-  speechSynthesis.speak(msg);
+const animalQuestions=[
+{name:"قطة",emoji:"🐱",type:"pet"},
+{name:"كلب",emoji:"🐶",type:"pet"},
+{name:"أرنب",emoji:"🐰",type:"pet"},
+{name:"حصان",emoji:"🐴",type:"pet"},
+{name:"بقرة",emoji:"🐮",type:"pet"},
+{name:"أسد",emoji:"🦁",type:"predator"},
+{name:"نمر",emoji:"🐯",type:"predator"},
+{name:"ذئب",emoji:"🐺",type:"predator"},
+{name:"تمساح",emoji:"🐊",type:"predator"},
+{name:"دب",emoji:"🐻",type:"predator"}
+];
+
+const mathQuestions=[
+{visual:"🍎 + 🍎",q:"كم يساوي واحد زائد واحد؟",options:["١","٢","٣"],correct:"B"},
+{visual:"🍎🍎 + 🍎",q:"كم يساوي اثنان زائد واحد؟",options:["٣","٤","٢"],correct:"A"},
+{visual:"🍎🍎🍎 − 🍎",q:"كم يساوي ثلاثة ناقص واحد؟",options:["١","٢","٣"],correct:"B"},
+{visual:"🍎🍎 + 🍎🍎",q:"كم يساوي اثنان زائد اثنان؟",options:["٣","٤","٥"],correct:"B"},
+{visual:"🍎🍎🍎🍎🍎 − 🍎🍎",q:"كم يساوي خمسة ناقص اثنان؟",options:["٢","٣","٤"],correct:"B"}
+];
+
+let questions=[];
+let current=null;
+let answered=false;
+let speaking=false;
+let score=0;
+let totalQuestions=10;
+let questionNumber=0;
+
+function speak(text,callback){
+const msg=new SpeechSynthesisUtterance(text);
+msg.lang='ar-SA';
+speaking=true;
+msg.onend=function(){
+speaking=false;
+if(callback) callback();
+};
+speechSynthesis.speak(msg);
 }
 
 function startGame(){
-  child = document.getElementById("childName").value.trim();
-  if(child === ""){
-    alert("يرجى كتابة الاسم");
-    return;
-  }
-  document.getElementById("start").style.display = "none";
-  document.getElementById("game").style.display = "block";
-  document.getElementById("welcome").textContent = "مرحباً " + child;
-  speak("مرحباً " + child + " هيا نلعب");
-  newQuestion();
+const name=document.getElementById('childName').value.trim();
+if(name===''){
+alert('يرجى كتابة اسم الطفل');
+return;
 }
 
-function newQuestion(){
-  document.getElementById("result").textContent = "";
-  document.getElementById("image").textContent = "";
+score=0;
+questionNumber=0;
 
-  let type = Math.floor(Math.random()*4);
+questions=[...animalQuestions.map(q=>({type:'animal',data:q})),...mathQuestions.map(q=>({type:'math',data:q}))];
+shuffle(questions);
 
-  if(type===0){ // جمع
-    let a = Math.floor(Math.random()*3)+1;
-    let b = Math.floor(Math.random()*3)+1;
-    correctAnswer = (a+b).toString();
-    document.getElementById("image").textContent = "➕";
-    let q = `كم يساوي ${a} زائد ${b}؟`;
-    document.getElementById("question").textContent = q;
-    speak(q);
-  }
-  else if(type===1){ // الأسد
-    document.getElementById("image").textContent = "🦁";
-    correctAnswer = "مفترس";
-    let q = "هل الأسد حيوان أليف أم مفترس؟";
-    document.getElementById("question").textContent = q;
-    speak(q);
-  }
-  else if(type===2){ // الكلب
-    document.getElementById("image").textContent = "🐶";
-    correctAnswer = "أليف";
-    let q = "هل الكلب حيوان أليف أم مفترس؟";
-    document.getElementById("question").textContent = q;
-    speak(q);
-  }
-  else{ // عد القطط
-    let count = Math.floor(Math.random()*3)+2;
-    correctAnswer = count.toString();
-    let animals = "🐱".repeat(count);
-    document.getElementById("image").textContent = animals;
-    let q = "كم عدد القطط؟";
-    document.getElementById("question").textContent = q;
-    speak(q);
-  }
+questions=questions.slice(0,totalQuestions);
+
+document.getElementById('nameBox').style.display='none';
+document.getElementById('game').style.display='block';
+
+document.getElementById('welcome').textContent='مرحباً '+name+' 👋';
+
+nextQuestion();
 }
 
-// تحويل الأعداد المكتوبة إلى أرقام
-function normalizeAnswer(text){
-  text = text.trim().toLowerCase();
-  const numbersMap = {
-    "واحد":"1","اثنان":"2","اثنين":"2","ثلاثة":"3","أربعة":"4","خمسة":"5","ستة":"6"
-  };
-  if(numbersMap[text]) return numbersMap[text];
-  return text;
+function shuffle(array){
+for(let i=array.length-1;i>0;i--){
+const j=Math.floor(Math.random()*(i+1));
+[array[i],array[j]]=[array[j],array[i]];
+}
 }
 
-// التحقق من الإجابة
-function checkAnswer(answer){
-  answer = normalizeAnswer(answer);
-  let correct = normalizeAnswer(correctAnswer);
+function nextQuestion(){
+if(speaking) return;
 
-  if(answer === correct || answer.includes(correct) || correct.includes(answer)){
-    stars++;
-    document.getElementById("stars").textContent = "⭐ " + stars;
-    document.getElementById("result").textContent = `🎉 أحسنت يا ${child}!`;
-    speak(`رائع أحسنت يا ${child}`);
-    setTimeout(newQuestion,2500);
-  }
-  else{
-    document.getElementById("result").textContent = "حاول مرة أخرى";
-    speak("حاول مرة أخرى");
-  }
+if(questionNumber>=totalQuestions){
+endGame();
+return;
 }
 
-function listen(){
-  if(!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)){
-    alert("متصفحك لا يدعم التعرف على الصوت. استخدم Chrome أو Edge.");
-    return;
-  }
-  let recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
-  recognition.lang = "ar-SA";
+answered=false;
+document.getElementById('next').style.display='none';
+document.getElementById('result').textContent='';
 
-  recognition.onstart = function(){
-    document.getElementById("result").textContent = "🎤 استمع الآن وأجب بصوتك";
-  }
+current=questions.pop();
+questionNumber++;
 
-  recognition.onresult = function(event){
-    let spokenText = event.results[0][0].transcript;
-    checkAnswer(spokenText);
-  }
-
-  recognition.onerror = function(event){
-    if(event.error === "not-allowed" || event.error === "permission-denied"){
-      document.getElementById("result").textContent = "يرجى السماح للمتصفح باستخدام الميكروفون!";
-      speak("يرجى السماح للمتصفح باستخدام الميكروفون!");
-    } else if(event.error === "no-speech"){
-      document.getElementById("result").textContent = "لم يتم سماع صوت، حاول مرة أخرى";
-      speak("لم يتم سماع صوت، حاول مرة أخرى");
-    } else {
-      document.getElementById("result").textContent = "حدث خطأ أثناء التعرف على الصوت: " + event.error;
-      speak("حدث خطأ أثناء التعرف على الصوت");
-    }
-  }
-
-  recognition.start();
+if(current.type==='animal'){
+showAnimal();
+}else{
+showMath();
 }
+}
+
+function showAnimal(){
+const a=current.data;
+
+document.getElementById('animalImg').textContent=a.emoji;
+document.getElementById('mathVisual').textContent='';
+
+document.getElementById('animalButtons').style.display='block';
+document.getElementById('mathButtons').style.display='none';
+
+speak('السؤال رقم '+questionNumber+'. هل ال '+a.name+' حيوان مفترس أم أليف؟');
+}
+
+function showMath(){
+const m=current.data;
+
+document.getElementById('animalImg').textContent='🔢';
+document.getElementById('mathVisual').textContent=m.visual;
+
+document.getElementById('animalButtons').style.display='none';
+document.getElementById('mathButtons').style.display='block';
+
+const buttons=["mathA","mathB","mathC"];
+buttons.forEach((id,i)=>{
+const btn=document.getElementById(id);
+btn.textContent=m.options[i];
+});
+
+speak('السؤال رقم '+questionNumber+'. '+m.q);
+}
+
+function answer(choice){
+if(answered || speaking) return;
+answered=true;
+
+const img=document.getElementById('animalImg');
+let correct=false;
+
+if(current.type==='animal'){
+correct=(choice===current.data.type);
+}else{
+correct=(choice===current.data.correct);
+}
+
+if(correct){
+score++;
+img.classList.add('correct');
+document.getElementById('result').textContent='إجابة صحيحة!';
+speak('إجابة صحيحة',function(){
+document.getElementById('next').style.display='inline-block';
+});
+}else{
+img.classList.add('wrong');
+document.getElementById('result').textContent='إجابة غير صحيحة';
+speak('هذه الإجابة غير صحيحة',function(){
+document.getElementById('next').style.display='inline-block';
+});
+}
+}
+
+function endGame(){
+document.getElementById('animalImg').textContent='🏆';
+document.getElementById('mathVisual').textContent='';
+document.getElementById('animalButtons').style.display='none';
+document.getElementById('mathButtons').style.display='none';
+document.getElementById('next').style.display='none';
+
+document.getElementById('result').textContent='نتيجتك '+score+' من ١٠';
+
+speak('انتهت اللعبة. نتيجتك '+score+' من عشرة');
+}
+
 </script>
 
 </body>
