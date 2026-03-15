@@ -2,242 +2,163 @@
 <html lang="ar">
 <head>
 <meta charset="UTF-8">
-<title>روضة أحلى عالم</title>
-
+<title>روضة أحلى عالم - لعبة صوتية</title>
 <style>
-
-body{
-font-family:Arial;
-text-align:center;
-direction:rtl;
-background:linear-gradient(#a0e9ff,#ffffff);
-}
-
-h1{
-font-size:45px;
-color:#ff6b6b;
-}
-
-#image{
-font-size:120px;
-margin:30px;
-}
-
-button{
-padding:18px 30px;
-font-size:22px;
-margin:10px;
-border:none;
-border-radius:15px;
-background:#4CAF50;
-color:white;
-cursor:pointer;
-}
-
-button:hover{
-background:#3e8e41;
-}
-
-input{
-padding:15px;
-font-size:20px;
-border-radius:10px;
-border:1px solid #ccc;
-}
-
-#result{
-font-size:28px;
-margin-top:20px;
-}
-
-#stars{
-font-size:35px;
-color:gold;
-}
-
+body { font-family: Arial; text-align: center; direction: rtl; background: linear-gradient(#a0e9ff,#ffffff); padding:20px;}
+h1 { font-size:40px; color:#ff6b6b; }
+#image { font-size:120px; margin:20px; }
+button { padding:15px 25px; font-size:20px; margin:8px; border:none; border-radius:12px; background:#4caf50; color:white; cursor:pointer;}
+button:hover { background:#3e8e41; }
+#result { font-size:28px; margin-top:15px; height:40px; }
+#stars { font-size:35px; color:gold; }
 </style>
-
 </head>
-
 <body>
 
 <h1>🌈 روضة أحلى عالم 🌈</h1>
 
 <div id="start">
-
-<h2>اكتب اسمك للبدء</h2>
-
-<input id="childName" placeholder="اسم الطفل">
-
-<br><br>
-
-<button onclick="startGame()">ابدأ اللعبة</button>
-
+  <h2>اكتب اسمك للبدء</h2>
+  <input id="childName" placeholder="اسم الطفل" style="font-size:20px; padding:10px; border-radius:10px; border:1px solid #ccc;">
+  <br><br>
+  <button onclick="startGame()">ابدأ اللعبة</button>
 </div>
 
 <div id="game" style="display:none;">
-
-<h2 id="welcome"></h2>
-
-<div id="stars">⭐ 0</div>
-
-<h2 id="question"></h2>
-
-<div id="image"></div>
-
-<button onclick="newQuestion()">🔊 اسمع السؤال</button>
-
-<button onclick="listen()">🎤 أجب بصوتك</button>
-
-<p id="result"></p>
-
+  <h2 id="welcome"></h2>
+  <div id="stars">⭐ 0</div>
+  <h2 id="question"></h2>
+  <div id="image"></div>
+  <button onclick="newQuestion()">🔊 اسمع السؤال</button>
+  <button onclick="listen()">🎤 أجب بصوتك</button>
+  <p id="result"></p>
 </div>
 
 <script>
-
-let correct="";
-let stars=0;
-let child="";
+let correctAnswer = "";
+let stars = 0;
+let child = "";
 
 function speak(text){
-
-let msg=new SpeechSynthesisUtterance(text);
-msg.lang="ar-SA";
-msg.rate=0.9;
-
-speechSynthesis.speak(msg);
-
+  let msg = new SpeechSynthesisUtterance(text);
+  msg.lang = "ar-SA";
+  msg.rate = 0.9;
+  speechSynthesis.speak(msg);
 }
 
 function startGame(){
-
-child=document.getElementById("childName").value;
-
-if(child==""){
-alert("يرجى كتابة الاسم");
-return;
-}
-
-document.getElementById("start").style.display="none";
-document.getElementById("game").style.display="block";
-
-document.getElementById("welcome").innerHTML="مرحباً "+child;
-
-speak("مرحباً "+child+" هيا نلعب");
-
+  child = document.getElementById("childName").value.trim();
+  if(child === ""){
+    alert("يرجى كتابة الاسم");
+    return;
+  }
+  document.getElementById("start").style.display = "none";
+  document.getElementById("game").style.display = "block";
+  document.getElementById("welcome").textContent = "مرحباً " + child;
+  speak("مرحباً " + child + " هيا نلعب");
+  newQuestion();
 }
 
 function newQuestion(){
+  document.getElementById("result").textContent = "";
+  document.getElementById("image").textContent = "";
 
-document.getElementById("result").innerHTML="";
+  let type = Math.floor(Math.random()*4);
 
-let type=Math.floor(Math.random()*4);
-
-if(type==0){
-
-let a=Math.floor(Math.random()*3)+1;
-let b=Math.floor(Math.random()*3)+1;
-
-correct=(a+b).toString();
-
-document.getElementById("image").innerHTML="➕";
-
-let q="كم يساوي "+a+" زائد "+b;
-
-document.getElementById("question").innerHTML=q;
-
-speak(q);
-
+  if(type===0){ // جمع
+    let a = Math.floor(Math.random()*3)+1;
+    let b = Math.floor(Math.random()*3)+1;
+    correctAnswer = (a+b).toString();
+    document.getElementById("image").textContent = "➕";
+    let q = `كم يساوي ${a} زائد ${b}؟`;
+    document.getElementById("question").textContent = q;
+    speak(q);
+  }
+  else if(type===1){ // الأسد
+    document.getElementById("image").textContent = "🦁";
+    correctAnswer = "مفترس";
+    let q = "هل الأسد حيوان أليف أم مفترس؟";
+    document.getElementById("question").textContent = q;
+    speak(q);
+  }
+  else if(type===2){ // الكلب
+    document.getElementById("image").textContent = "🐶";
+    correctAnswer = "أليف";
+    let q = "هل الكلب حيوان أليف أم مفترس؟";
+    document.getElementById("question").textContent = q;
+    speak(q);
+  }
+  else{ // عد القطط
+    let count = Math.floor(Math.random()*3)+2;
+    correctAnswer = count.toString();
+    let animals = "🐱".repeat(count);
+    document.getElementById("image").textContent = animals;
+    let q = "كم عدد القطط؟";
+    document.getElementById("question").textContent = q;
+    speak(q);
+  }
 }
 
-if(type==1){
-
-document.getElementById("image").innerHTML="🦁";
-
-correct="مفترس";
-
-let q="هل الأسد حيوان أليف أم مفترس؟";
-
-document.getElementById("question").innerHTML=q;
-
-speak(q);
-
+// تحويل الأعداد المكتوبة إلى أرقام
+function normalizeAnswer(text){
+  text = text.trim().toLowerCase();
+  const numbersMap = {
+    "واحد":"1","اثنان":"2","اثنين":"2","ثلاثة":"3","أربعة":"4","خمسة":"5","ستة":"6"
+  };
+  if(numbersMap[text]) return numbersMap[text];
+  return text;
 }
 
-if(type==2){
+// التحقق من الإجابة
+function checkAnswer(answer){
+  answer = normalizeAnswer(answer);
+  let correct = normalizeAnswer(correctAnswer);
 
-document.getElementById("image").innerHTML="🐶";
-
-correct="أليف";
-
-let q="هل الكلب حيوان أليف أم مفترس؟";
-
-document.getElementById("question").innerHTML=q;
-
-speak(q);
-
-}
-
-if(type==3){
-
-let count=Math.floor(Math.random()*3)+2;
-
-correct=count.toString();
-
-let animals="";
-
-for(let i=0;i<count;i++){
-
-animals+="🐱";
-
-}
-
-document.getElementById("image").innerHTML=animals;
-
-let q="كم عدد القطط؟";
-
-document.getElementById("question").innerHTML=q;
-
-speak(q);
-
-}
-
+  if(answer === correct || answer.includes(correct) || correct.includes(answer)){
+    stars++;
+    document.getElementById("stars").textContent = "⭐ " + stars;
+    document.getElementById("result").textContent = `🎉 أحسنت يا ${child}!`;
+    speak(`رائع أحسنت يا ${child}`);
+    setTimeout(newQuestion,2500);
+  }
+  else{
+    document.getElementById("result").textContent = "حاول مرة أخرى";
+    speak("حاول مرة أخرى");
+  }
 }
 
 function listen(){
+  if(!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)){
+    alert("متصفحك لا يدعم التعرف على الصوت. استخدم Chrome أو Edge.");
+    return;
+  }
+  let recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+  recognition.lang = "ar-SA";
 
-let recognition=new(window.SpeechRecognition || window.webkitSpeechRecognition)();
+  recognition.onstart = function(){
+    document.getElementById("result").textContent = "🎤 استمع الآن وأجب بصوتك";
+  }
 
-recognition.lang="ar-SA";
+  recognition.onresult = function(event){
+    let spokenText = event.results[0][0].transcript;
+    checkAnswer(spokenText);
+  }
 
-recognition.start();
+  recognition.onerror = function(event){
+    if(event.error === "not-allowed" || event.error === "permission-denied"){
+      document.getElementById("result").textContent = "يرجى السماح للمتصفح باستخدام الميكروفون!";
+      speak("يرجى السماح للمتصفح باستخدام الميكروفون!");
+    } else if(event.error === "no-speech"){
+      document.getElementById("result").textContent = "لم يتم سماع صوت، حاول مرة أخرى";
+      speak("لم يتم سماع صوت، حاول مرة أخرى");
+    } else {
+      document.getElementById("result").textContent = "حدث خطأ أثناء التعرف على الصوت: " + event.error;
+      speak("حدث خطأ أثناء التعرف على الصوت");
+    }
+  }
 
-recognition.onresult=function(event){
-
-let text=event.results[0][0].transcript;
-
-if(text.includes(correct)){
-
-stars++;
-
-document.getElementById("stars").innerHTML="⭐ "+stars;
-
-document.getElementById("result").innerHTML="🎉 أحسنت "+child;
-
-speak("أحسنت "+child);
-
-}else{
-
-document.getElementById("result").innerHTML="حاول مرة أخرى";
-
-speak("حاول مرة أخرى");
-
+  recognition.start();
 }
-
-}
-
-}
-
 </script>
 
 </body>
